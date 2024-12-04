@@ -28,7 +28,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install -r requirements-dev.txt
+          pip install pytest pytest-cov
 
       # Executar testes com cobertura de código
       - name: Run tests
@@ -40,7 +40,8 @@ jobs:
         run: |
           curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
           unzip sonar-scanner.zip -d $HOME/
-          export PATH="$HOME/sonar-scanner-4.8.0.2856-linux/bin:$PATH"
+          echo "SONAR_SCANNER_HOME=$HOME/sonar-scanner-4.8.0.2856-linux" >> $GITHUB_ENV
+          echo "$HOME/sonar-scanner-4.8.0.2856-linux/bin" >> $GITHUB_PATH
 
       # Executar análise SonarQube
       - name: Run SonarQube Analysis
