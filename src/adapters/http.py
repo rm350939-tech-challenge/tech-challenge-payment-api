@@ -4,12 +4,15 @@ from flask import Blueprint, request, jsonify
 from adapters.dto import OutputPaymentDTO
 
 from adapters.orm import PaymentRepository, PaymentTypeRepository
+from adapters.services import OrderServiceAdapter
+
 from domain.exceptions import EntityNotFoundException
 from domain.services import PaymentService
 
 service = PaymentService(
     payment_repository=PaymentRepository(),
     payment_type_repository=PaymentTypeRepository(),
+    order_service=OrderServiceAdapter(),
 )
 
 payment_api = Blueprint("payment_api", __name__)

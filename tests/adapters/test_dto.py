@@ -31,7 +31,7 @@ def test_from_domain(payment_entity):
 
 
 def test_to_dict(payment_entity):
-    
+
     dto = OutputPaymentDTO.from_domain(payment_entity)
 
     dto_dict = dto.to_dict()
