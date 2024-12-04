@@ -1,35 +1,41 @@
-name: Build App
+name: CI Pipeline
+
 on:
   push:
     branches:
-      - master
+      - mastet
   pull_request:
-    types: [opened, synchronize, reopened]
+    branches:
+      - mastet
 
 jobs:
-  sonarqube-scan:
-    name: Sonarqube Scan
+  sonarqube:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout source code
+      # Checkout do código
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Python
+      # Configuração do Python
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.x'
 
+      # Instalar dependências
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install -r requirements-dev.txt
-          pip install coverage
+          pip install pytest pytest-cov
 
-      - name: Run tests and generate coverage report
+      # Executar testes com cobertura de código
+      - name: Run tests
         run: |
-          pytest --cov=src/domain --cov=src/adapters --cov=src/ports --cov-report=xml
+          pytest --cov=. --cov-report=xml
 
+      # Baixar e configurar o Sonar Scanner
       - name: Install Sonar Scanner
         run: |
           curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
@@ -45,45 +51,3 @@ jobs:
           sonar-scanner \
             -Dsonar.login=$SONAR_TOKEN \
             -Dsonar.host.url=$SONAR_HOST_URL
-        
-  deploy:
-    if: github.ref == 'refs/heads/master' 
-    name: Deploy EKS
-    runs-on: ubuntu-latest
-    needs: sonarqube-scan
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Install kubectl
-        uses: azure/setup-kubectl@v4
-        with:
-          version: "latest"
-        id: install
-
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-2
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build, tag, and push docker image to Amazon ECR
-        env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: nome-repo
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
-          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
-
-      - name: Update kube config
-        run: aws eks update-kubeconfig --name nome-repo
-
-      - name: Deploy to EKS
-        run: |
-          kubectl apply -f .kubernetes/
