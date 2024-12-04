@@ -32,7 +32,7 @@ jobs:
       
       # Baixar Sonar Scanner
       - name: Download Sonar Scanner
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: sonar-scanner-cli
           path: sonar-scanner-cli
