@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
@@ -9,53 +9,38 @@ on:
       - master
 
 jobs:
-  sonarqube:
+  sonarqube-scan:
     runs-on: ubuntu-latest
 
     steps:
       # Checkout do código
-      - name: Checkout code
+      - name: Checkout source code
         uses: actions/checkout@v3
 
-      # Configuração do Java
-      - name: Setup Java
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17'
-          distribution: 'temurin' # Ou 'zulu', dependendo de sua preferência
-
       # Configuração do Python
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      # Instalar dependências
+      # Instalar dependências do projeto
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
 
-      # Executar testes com cobertura de código
-      - name: Run tests
+      # Executar testes e gerar o relatório de cobertura
+      - name: Run tests and generate coverage report
         run: |
           pytest --cov=. --cov-report=xml
 
-      # Baixar e configurar o Sonar Scanner
-      - name: Install Sonar Scanner
+      # Executar o SonarScanner
+      - name: SonarQube Scan
         run: |
-          curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
-          unzip sonar-scanner.zip -d $HOME/
-          echo "SONAR_SCANNER_HOME=$HOME/sonar-scanner-4.8.0.2856-linux" >> $GITHUB_ENV
-          echo "$HOME/sonar-scanner-4.8.0.2856-linux/bin" >> $GITHUB_PATH
-
-      # Executar análise SonarQube
-      - name: Run SonarQube Analysis
+          curl -sSLo sonar-scanner-cli.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
+          unzip sonar-scanner-cli.zip
+          ./sonar-scanner-*/bin/sonar-scanner
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
-        run: |
-          sonar-scanner \
-            -Dsonar.login=$SONAR_TOKEN \
-            -Dsonar.host.url=$SONAR_HOST_URL
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
