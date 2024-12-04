@@ -17,6 +17,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # Configuração do Java
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin' # Ou 'zulu', dependendo de sua preferência
+
       # Configuração do Python
       - name: Setup Python
         uses: actions/setup-python@v4
