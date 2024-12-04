@@ -2,6 +2,7 @@ from typing import List
 from domain.entities import PaymentEntity, PaymentEntityFilter, PaymentStatus
 from domain.exceptions import EntityNotFoundException
 
+from ports.order_service import OrderServicePort
 from ports.repositories import (
     PaymentRepositoryInterface,
     PaymentTypeRepositoryInterface,
@@ -14,9 +15,11 @@ class PaymentService:
         self,
         payment_repository: PaymentRepositoryInterface,
         payment_type_repository: PaymentTypeRepositoryInterface,
+        order_service: OrderServicePort,
     ) -> None:
         self._payment_repository = payment_repository
         self._payment_type_repository = payment_type_repository
+        self._order_service = order_service
 
     def register_payment(self, **input_data) -> PaymentEntity:
         order_id = input_data.get("order_id")
@@ -34,13 +37,7 @@ class PaymentService:
             status=PaymentStatus.APPROVED,
         )
 
-        # TODO: Publicar evento em fila?
-        # updated_order = self._order_data_provider.patch(
-        #     order_id=payment.order.id,
-        #     status=OrderStatus.RECEIVED.value,
-        #     updated_at=datetime.now(),
-        # )
-        # payment.order = updated_order
+        self._order_service.update_status_order(order_id, "RECEIVED")
 
         return self._payment_repository.create(payment_entity=payment)
 
@@ -64,13 +61,5 @@ class PaymentService:
         updated_payment = self._payment_repository.patch(
             payment_id=payment_id, status=status
         )
-
-        # TODO: Publicar evento em fila?
-        # updated_order = self._order_data_provider.patch(
-        #     order_id=payment.order.id,
-        #     status=OrderStatus.RECEIVED.value,
-        #     updated_at=datetime.now()
-        # )
-        # updated_payment.order = updated_order
 
         return updated_payment

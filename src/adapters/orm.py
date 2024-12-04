@@ -46,6 +46,7 @@ class PaymentTypeModel(Model):
     class Meta:
         database = db
         table_name = "payment_types"
+        schema = os.environ.get("DATABASE_SCHEMA_NAME")
 
 
 class PaymentModel(Model):
@@ -61,6 +62,7 @@ class PaymentModel(Model):
     class Meta:
         database = db
         table_name = "payments"
+        schema = os.environ.get("DATABASE_SCHEMA_NAME")
 
 
 class PaymentRepository(PaymentRepositoryInterface):

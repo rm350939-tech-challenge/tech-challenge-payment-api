@@ -1,7 +1,12 @@
 import pytest
 from unittest.mock import MagicMock, patch
 from datetime import datetime
-from domain.entities import PaymentEntity, PaymentEntityFilter, PaymentStatus, PaymentTypeEntity
+from domain.entities import (
+    PaymentEntity,
+    PaymentEntityFilter,
+    PaymentStatus,
+    PaymentTypeEntity,
+)
 from adapters.orm import PaymentRepository, PaymentTypeRepository
 
 
@@ -79,14 +84,6 @@ def mock_payment_type_entity():
     return entity
 
 
-
-
 @pytest.fixture
 def payment_type_repository():
     return PaymentTypeRepository()
-
-
-
-
-
-
